@@ -132,42 +132,57 @@ export default function VisiMisiPage() {
       <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* ---------------------------------------------------- */}
-          {/* KOLOM KIRI: 2 KOTAK TERSUSUN VERTIKAL                */}
+          {/* KOLOM KIRI: VISI + TUJUAN                            */}
           {/* ---------------------------------------------------- */}
           <div className="flex flex-col gap-6 h-full">
-            {/* KOTAK KIRI 1: VISI PERISAI UMI (KOMPAK & RAMPING)    */}
-            <div className="shrink-0 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-5 sm:p-6 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 relative overflow-hidden">
-              <Sparkle className="top-4 right-6" size={16} delay={0.5} />
+            {/* KOTAK KIRI 1: VISI PERISAI UMI */}
+            <div className="relative overflow-hidden shrink-0 rounded-3xl border border-[#FFB22C]/30 bg-[#202026]/85 p-6 sm:p-7 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/55">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-[#FFB22C]/10 blur-3xl"
+              />
+              <Sparkle className="top-5 right-6" size={16} delay={0.5} />
 
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                VISI PERISAI UMI
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                <span>✦</span>
+                <span>Arah & Cita-Cita</span>
+              </span>
+              <h2 className="mt-3 text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Visi PERISAI UMI
               </h2>
 
-              <div className="mt-2.5 rounded-2xl border border-[#FFB22C]/30 bg-[#FFB22C]/5 p-3.5 sm:p-4">
-                <p className="text-xs sm:text-sm leading-relaxed text-zinc-100 font-medium italic">
+              <div className="relative overflow-hidden mt-4 rounded-2xl border border-[#FFB22C]/35 bg-gradient-to-br from-[#2b2b34] via-[#222229] to-[#1a1a20] p-4 sm:p-5 shadow-md">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFB22C]/70 to-transparent" />
+                <p className="text-sm sm:text-[15px] leading-relaxed text-zinc-100 font-medium italic">
                   &ldquo;Menjadi organisasi mahasiswa yang unggul dalam riset, inovasi, dan pengembangan penalaran ilmiah untuk menciptakan generasi inovator yang kompeten, berintegritas, dan berdaya saing di tingkat nasional maupun internasional.&rdquo;
                 </p>
               </div>
             </div>
 
-            {/* KOTAK KIRI 2: TUJUAN (LEBIH BESAR & LEGA)            */}
-            <div className="flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-center relative overflow-hidden">
-              <Sparkle className="top-4 right-6" size={16} delay={1.6} float />
+            {/* KOTAK KIRI 2: TUJUAN */}
+            <div className="relative overflow-hidden flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col gap-5">
+              <Sparkle className="top-5 right-6" size={16} delay={1.6} float />
 
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                TUJUAN
-              </h2>
+              <div className="border-b border-white/10 pb-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                  <span>✦</span>
+                  <span>5 Sasaran Strategis</span>
+                </span>
+                <h2 className="mt-3 text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                  Tujuan Organisasi
+                </h2>
+              </div>
 
-              <div className="mt-4 space-y-2.5 sm:space-y-3">
+              <div className="space-y-3">
                 {goals.map((goal, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-all duration-200 hover:border-[#FFB22C]/30 hover:bg-[#FFB22C]/5"
+                    className="group flex items-start gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3.5 transition-all duration-200 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/[0.06]"
                   >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-[11px] font-bold border border-[#FFB22C]/25 mt-0.5">
-                      {idx + 1}
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-xs font-extrabold border border-[#FFB22C]/30 group-hover:bg-[#FFB22C] group-hover:text-[#1b1b1f] transition-colors">
+                      0{idx + 1}
                     </span>
-                    <p className="text-xs sm:text-sm md:text-base text-zinc-200 leading-snug">
+                    <p className="text-xs sm:text-sm md:text-[15px] text-zinc-200 leading-relaxed pt-0.5">
                       {goal}
                     </p>
                   </div>
@@ -177,31 +192,54 @@ export default function VisiMisiPage() {
           </div>
 
           {/* ---------------------------------------------------- */}
-          {/* KOLOM KANAN: 1 KOTAK (MISI PERISAI UMI)              */}
+          {/* KOLOM KANAN: MISI PERISAI UMI                        */}
           {/* ---------------------------------------------------- */}
           <div className="flex flex-col h-full">
-            <div className="h-full rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-center relative overflow-hidden">
-              <Sparkle className="top-5 right-7" size={18} delay={1.1} float />
+            <div className="relative overflow-hidden h-full rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-between gap-6">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FFB22C]/10 blur-3xl"
+              />
+              <Sparkle className="top-6 right-7" size={18} delay={1.1} float />
 
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">
-                MISI PERISAI UMI
-              </h2>
+              <div className="relative z-10 flex flex-col gap-5">
+                <div className="border-b border-white/10 pb-5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                    <span>✦</span>
+                    <span>6 Pilar Pergerakan</span>
+                  </span>
+                  <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Misi PERISAI UMI
+                  </h2>
+                  <p className="mt-2 text-sm sm:text-[15px] leading-relaxed text-zinc-400">
+                    Langkah strategis dan komitmen nyata untuk mewujudkan budaya riset yang unggul dan berintegritas:
+                  </p>
+                </div>
 
-              {/* 6 Butir Misi */}
-              <div className="mt-4 space-y-2.5">
-                {missions.map((mission, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-all duration-200 hover:border-[#FFB22C]/30 hover:bg-[#FFB22C]/5"
-                  >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-[11px] font-bold border border-[#FFB22C]/25 mt-0.5">
-                      {idx + 1}
-                    </span>
-                    <p className="text-xs sm:text-sm md:text-base text-zinc-200 leading-snug">
-                      {mission}
-                    </p>
-                  </div>
-                ))}
+                {/* 6 Butir Misi */}
+                <div className="space-y-3">
+                  {missions.map((mission, idx) => (
+                    <div
+                      key={idx}
+                      className="group flex items-start gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3.5 sm:p-4 transition-all duration-200 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/[0.06]"
+                    >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-xs font-extrabold border border-[#FFB22C]/30 group-hover:bg-[#FFB22C] group-hover:text-[#1b1b1f] transition-colors">
+                        0{idx + 1}
+                      </span>
+                      <p className="text-xs sm:text-sm md:text-[15px] text-zinc-200 leading-relaxed pt-0.5">
+                        {mission}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer Ringkas Misi */}
+              <div className="relative z-10 overflow-hidden rounded-2xl border border-[#FFB22C]/30 bg-gradient-to-r from-[#2b2b34] via-[#222229] to-[#1a1a20] px-5 py-4 text-center">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFB22C]/60 to-transparent" />
+                <p className="text-xs sm:text-sm font-semibold text-zinc-200">
+                  <span className="text-[#FFB22C] font-extrabold">6 Misi Terpadu</span> — Membangun ekosistem riset, inovasi, kolaborasi, dan nilai keislaman di UMI.
+                </p>
               </div>
             </div>
           </div>

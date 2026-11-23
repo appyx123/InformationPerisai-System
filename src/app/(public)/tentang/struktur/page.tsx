@@ -648,16 +648,16 @@ export default function StrukturPage() {
               {structuralPoints.map((item) => (
                 <div
                   key={item.no}
-                  className="group flex items-start gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5 transition-all duration-300 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/5"
+                  className="group flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl bg-white/[0.025] border border-white/[0.07] transition-all duration-200 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/[0.06]"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFB22C]/15 border border-[#FFB22C]/30 text-sm font-black text-[#FFB22C] shadow-sm">
-                    {item.no}
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFB22C]/15 border border-[#FFB22C]/30 font-mono text-xs font-extrabold text-[#FFB22C] group-hover:bg-[#FFB22C] group-hover:text-[#1b1b1f] transition-colors">
+                    0{item.no}
                   </span>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-[#FFB22C] transition-colors mb-1">
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-[15px] font-bold text-white group-hover:text-[#FFB22C] transition-colors leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    <p className="mt-0.5 text-xs sm:text-sm text-zinc-400 leading-relaxed">
                       {item.desc}
                     </p>
                   </div>

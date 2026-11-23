@@ -117,49 +117,58 @@ export default function SejarahPage() {
           {/* ---------------------------------------------------- */}
           {/* KOLOM KIRI: 2 KOTAK TERSUSUN VERTIKAL                */}
           {/* ---------------------------------------------------- */}
-          <div className="flex flex-col gap-6 justify-between">
+          <div className="flex flex-col gap-6">
             {/* KOTAK KIRI 1: Sejarah PERISAI UMI */}
-            <div className="flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Sejarah PERISAI UMI
-              </h2>
-              <p className="text-xs sm:text-sm font-semibold text-[#FFB22C] mt-0.5">
-                (Pusat Pengembangan Riset Mahasiswa UMI)
-              </p>
+            <div className="flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-between gap-4">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                  <span>✦</span>
+                  <span>Latar Belakang</span>
+                </span>
+                <h2 className="mt-3 text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                  Sejarah PERISAI UMI
+                </h2>
+                <p className="text-xs sm:text-sm font-semibold text-[#FFB22C] mt-1">
+                  Pusat Pengembangan Riset Mahasiswa Universitas Muslim Indonesia
+                </p>
 
-              <p className="mt-3.5 text-sm sm:text-base leading-relaxed text-zinc-300 text-justify">
-                PERISAI UMI merupakan Unit Kegiatan Mahasiswa (UKM) resmi Universitas Muslim Indonesia yang berfokus pada pengembangan penalaran, riset, inovasi, dan kompetisi ilmiah. UKM ini lahir sebagai respon atas meningkatnya kebutuhan mahasiswa UMI untuk memiliki wadah pembinaan yang terarah dalam karya tulis ilmiah, PKM, penelitian, dan pengembangan teknologi.
-              </p>
+                <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-zinc-300">
+                  PERISAI UMI merupakan Unit Kegiatan Mahasiswa (UKM) resmi Universitas Muslim Indonesia yang berfokus pada pengembangan penalaran, riset, inovasi, dan kompetisi ilmiah. UKM ini lahir sebagai respon atas meningkatnya kebutuhan mahasiswa UMI untuk memiliki wadah pembinaan yang terarah dalam karya tulis ilmiah, PKM, penelitian, dan pengembangan teknologi.
+                </p>
+              </div>
             </div>
 
             {/* KOTAK KIRI 2: Awal Berdiri */}
-            <div className="flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Awal Berdiri
-              </h2>
+            <div className="flex-1 rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-between gap-4">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                  <span>✦</span>
+                  <span>Fondasi Pendirian</span>
+                </span>
+                <h2 className="mt-3 text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                  Awal Berdiri
+                </h2>
 
-              <p className="mt-2.5 text-sm sm:text-base leading-relaxed text-zinc-300">
-                PERISAI UMI dibentuk oleh sekelompok mahasiswa yang aktif dalam kegiatan akademik dan riset, yang melihat bahwa UMI memerlukan komunitas formal untuk:
-              </p>
+                <p className="mt-3 text-sm sm:text-[15px] leading-relaxed text-zinc-300">
+                  PERISAI UMI dibentuk oleh sekelompok mahasiswa yang aktif dalam kegiatan akademik dan riset, yang melihat bahwa UMI memerlukan komunitas formal untuk:
+                </p>
 
-              <ul className="mt-3.5 space-y-2 text-sm sm:text-base text-zinc-200">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-[#FFB22C] font-bold text-sm leading-none mt-1">✦</span>
-                  <span>Meningkatkan budaya ilmiah,</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-[#FFB22C] font-bold text-sm leading-none mt-1">✦</span>
-                  <span>Mendorong mahasiswa ikut lomba tingkat regional hingga nasional,</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-[#FFB22C] font-bold text-sm leading-none mt-1">✦</span>
-                  <span>Mempersiapkan kader unggul,</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-[#FFB22C] font-bold text-sm leading-none mt-1">✦</span>
-                  <span>Mengembangkan inovasi di bidang teknologi dan penelitian sosial.</span>
-                </li>
-              </ul>
+                <ul className="mt-4 space-y-2.5 text-sm sm:text-[15px] text-zinc-200">
+                  {[
+                    "Meningkatkan budaya ilmiah di lingkungan kampus",
+                    "Mendorong mahasiswa ikut lomba tingkat regional hingga nasional",
+                    "Mempersiapkan kader peneliti dan inovator unggul",
+                    "Mengembangkan inovasi di bidang teknologi dan penelitian sosial",
+                  ].map((point, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center text-[#FFB22C] text-xs leading-none">
+                        ✦
+                      </span>
+                      <span className="leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -167,53 +176,86 @@ export default function SejarahPage() {
           {/* KOLOM KANAN: 1 KOTAK (PERKEMBANGAN DAN KONTRIBUSI)   */}
           {/* ---------------------------------------------------- */}
           <div className="flex flex-col h-full">
-            <div className="h-full rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-center gap-5 sm:gap-6">
-              <div>
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">
+            <div className="relative overflow-hidden h-full rounded-3xl border border-[#FFB22C]/25 bg-[#202026]/85 p-6 sm:p-7 lg:p-8 backdrop-blur-md shadow-xl transition-all duration-300 hover:border-[#FFB22C]/50 flex flex-col justify-between gap-6">
+              {/* Subtle top-right ambient highlight */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FFB22C]/10 blur-3xl"
+              />
+
+              {/* Header */}
+              <div className="relative z-10 border-b border-white/10 pb-5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB22C]/30 bg-[#FFB22C]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FFB22C]">
+                  <span>✦</span>
+                  <span>Rekam Jejak & Dampak</span>
+                </span>
+                <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                   Perkembangan dan Kontribusi
                 </h2>
-
-                <p className="mt-2 text-sm sm:text-base leading-relaxed text-zinc-300">
-                  Sejak berdiri, PERISAI UMI terus berkembang melalui:
+                <p className="mt-2 text-sm sm:text-[15px] leading-relaxed text-zinc-400">
+                  Sejak berdiri, PERISAI UMI terus bertumbuh dan memberi dampak nyata melalui empat pilar utama:
                 </p>
+              </div>
 
-                {/* 4 Poin Perkembangan */}
-                <div className="mt-3.5 space-y-2.5">
-                  {[
-                    "Pembentukan 6 departemen fungsional: PSDM, KOMPRES, HUMAS, RISTEK, Penalaran, dan Media,",
-                    "Pembinaan intensif karya ilmiah, PKM, riset, dan teknologi,",
-                    "Keterlibatan aktif dalam event nasional,",
-                    "Pencapaian prestasi mahasiswa UMI di berbagai lomba dan kompetisi.",
-                  ].map((text, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-all duration-200 hover:border-[#FFB22C]/30 hover:bg-[#FFB22C]/5"
-                    >
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-[11px] font-bold border border-[#FFB22C]/25 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <p className="text-sm sm:text-base text-zinc-200 leading-snug">
-                        {text}
+              {/* 4 Poin Perkembangan */}
+              <div className="relative z-10 space-y-3">
+                {[
+                  {
+                    title: "6 Departemen Fungsional",
+                    desc: "Pembentukan PSDM, KOMPRES, HUMAS, RISTEK, Penalaran, dan Media.",
+                  },
+                  {
+                    title: "Pembinaan Riset & Teknologi",
+                    desc: "Pembinaan intensif karya ilmiah, PKM, penelitian, dan pengembangan teknologi.",
+                  },
+                  {
+                    title: "Kiprah di Event Nasional",
+                    desc: "Keterlibatan aktif dalam berbagai forum, pertemuan, dan ajang ilmiah nasional.",
+                  },
+                  {
+                    title: "Capaian Prestasi Mahasiswa",
+                    desc: "Pencapaian prestasi mahasiswa UMI di berbagai lomba dan kompetisi bergengsi.",
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="group flex items-start gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3.5 sm:p-4 transition-all duration-200 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/[0.06]"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFB22C]/15 text-[#FFB22C] font-mono text-xs font-extrabold border border-[#FFB22C]/30 group-hover:bg-[#FFB22C] group-hover:text-[#1b1b1f] transition-colors">
+                      0{idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-sm sm:text-[15px] font-bold text-white group-hover:text-[#FFB22C] transition-colors leading-snug">
+                        {item.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                        {item.desc}
                       </p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
 
               {/* Box Rumah bagi para Inovator */}
-              <div className="rounded-2xl border border-[#FFB22C]/35 bg-gradient-to-br from-[#2b2b33] via-[#202026] to-[#1a1a1f] p-4 sm:p-5 text-center shadow-lg">
-                <p className="text-sm sm:text-base font-bold text-white leading-relaxed">
-                  PERISAI UMI juga menjadi rumah bagi para{" "}
-                  <span
-                    className="text-[#FFB22C] font-extrabold"
-                    style={{
-                      textShadow: "0 0 15px rgba(255, 178, 44, 0.4)",
-                    }}
-                  >
-                    “Inovator”
-                  </span>{" "}
-                  sebutan bagi anggotanya, untuk berkolaborasi, berkreasi, dan berkontribusi bagi kampus.
-                </p>
+              <div className="relative z-10 overflow-hidden rounded-2xl border border-[#FFB22C]/35 bg-gradient-to-br from-[#2b2b34] via-[#222229] to-[#1a1a20] p-5 sm:p-6 shadow-lg">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFB22C]/70 to-transparent" />
+                <div className="flex flex-col items-center text-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#FFB22C]/90">
+                    ✦ Identitas Kader ✦
+                  </span>
+                  <p className="text-sm sm:text-[15px] font-semibold text-zinc-100 leading-relaxed max-w-md">
+                    PERISAI UMI juga menjadi rumah bagi para{" "}
+                    <span
+                      className="text-[#FFB22C] font-extrabold"
+                      style={{
+                        textShadow: "0 0 16px rgba(255, 178, 44, 0.45)",
+                      }}
+                    >
+                      &ldquo;Inovator&rdquo;
+                    </span>{" "}
+                    — sebutan bagi anggotanya — untuk berkolaborasi, berkreasi, dan berkontribusi bagi kampus.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
