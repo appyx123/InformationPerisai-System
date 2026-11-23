@@ -79,12 +79,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Public content pages & homepage: Cache di Cloudflare Edge CDN selama 2 menit, stale-while-revalidate 10 menit
+        // Public content pages & homepage: JANGAN cache HTML di edge (menyebabkan version skew: HTML lama merujuk aset _next/static hasil deploy lama yang sudah 404)
         source: "/:path((?:tentang|kabar|peluang).*)",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, s-maxage=120, stale-while-revalidate=600",
+            value: "public, max-age=0, must-revalidate",
           },
         ],
       },
@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, s-maxage=120, stale-while-revalidate=600",
+            value: "public, max-age=0, must-revalidate",
           },
         ],
       },
