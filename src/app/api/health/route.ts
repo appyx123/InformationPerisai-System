@@ -3,7 +3,13 @@ import prisma from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+// Cache hasil 30 detik per isolate agar polling health-check tidak membebani Turso/R2.
+let healthCache: { body: unknown; status: number; expiry: number } | null = null;
+
 export async function GET() {
+  if (healthCache && healthCache.expiry > Date.now()) {
+    return NextResponse.json(healthCache.body, { status: healthCache.status });
+  }
   const overallStart = Date.now();
 
   // 1. Diagnostik Basis Data (Turso LibSQL / SQLite)
@@ -90,8 +96,7 @@ export async function GET() {
     ? "degraded"
     : "unhealthy";
 
-  return NextResponse.json(
-    {
+  const body = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       service: "UKM PERISAI UMI System",
@@ -125,7 +130,8 @@ export async function GET() {
           configured: isTurnstileConfigured,
         },
       },
-    },
-    { status: isDbHealthy ? 200 : 503 }
-  );
+  };
+  const status = isDbHealthy ? 200 : 503;
+  healthCache = { body, status, expiry: Date.now() + 30_000 };
+  return NextResponse.json(body, { status });
 }

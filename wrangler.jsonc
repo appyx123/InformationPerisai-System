@@ -1,63 +1,74 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "perisai-info-web",
-  "main": ".open-next/worker.js",
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  },
-
-  // Compatibility date: gunakan tanggal yang mendukung nodejs_compat dan workerd stabil
-  "compatibility_date": "2025-01-01",
-  "compatibility_flags": [
-    // WAJIB: mengaktifkan modul Node.js (crypto, buffer, stream) di Workers
-    "nodejs_compat"
-  ],
-
-  "observability": {
-    "logs": {
-      "enabled": true,
-      "head_sampling_rate": 1,
-      "invocation_logs": true,
-      "persist": true
-    },
-    "traces": {
-      "enabled": false,
-      "head_sampling_rate": 1,
-      "persist": true
-    }
-  },
-
-  // ============================================================
-  // VARIABEL LINGKUNGAN NON-SENSITIF
-  // Variabel yang aman diletakkan di sini (tidak mengandung secret).
-  // ============================================================
-  "vars": {
-    "NODE_ENV": "production",
-    "STORAGE_DRIVER": "r2",
-    "R2_REGION": "auto"
-  }
-
-  // ============================================================
-  // PERINTAH UNTUK MENDAFTARKAN SECRETS:
-  // Secrets TIDAK boleh ada di file ini.
-  // Gunakan skrip otomatis: 'npm run secrets:setup' atau daftarkan via CLI:
-  //
-  //   npx wrangler secret put TURSO_DATABASE_URL
-  //   npx wrangler secret put TURSO_AUTH_TOKEN
-  //   npx wrangler secret put R2_ENDPOINT
-  //   npx wrangler secret put R2_BUCKET
-  //   npx wrangler secret put R2_ACCESS_KEY_ID
-  //   npx wrangler secret put R2_SECRET_ACCESS_KEY
-  //   npx wrangler secret put R2_PUBLIC_URL
-  //   npx wrangler secret put AUTH_SECRET
-  //   npx wrangler secret put NEXT_PUBLIC_APP_URL
-  //   npx wrangler secret put NEXT_PUBLIC_TURNSTILE_SITE_KEY
-  //   npx wrangler secret put CLOUDFLARE_TURNSTILE_SECRET_KEY
-  //   npx wrangler secret put CLOUDFLARE_ZONE_ID
-  //   npx wrangler secret put CLOUDFLARE_API_TOKEN
-  //
-  // Verifikasi secrets yang terdaftar:
-  //   npx wrangler secret list
-  // ============================================================
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "perisai-info-web",
+	"main": ".open-next/worker.js",
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	// Compatibility date: gunakan tanggal yang mendukung nodejs_compat dan workerd stabil
+	"compatibility_date": "2025-01-01",
+	"compatibility_flags": [
+		// WAJIB: mengaktifkan modul Node.js (crypto, buffer, stream) di Workers
+		"nodejs_compat"
+	],
+	// Cache ISR (Next.js revalidate) disimpan di R2. Buat bucket dulu:
+	//   npx wrangler r2 bucket create perisai-next-cache
+	"r2_buckets": [
+		{
+			"binding": "NEXT_INC_CACHE_R2_BUCKET",
+			"bucket_name": "perisai-next-cache"
+		}
+	],
+	// Dibutuhkan memory-queue untuk revalidasi ISR di latar belakang
+	"services": [
+		{
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "perisai-info-web"
+		}
+	],
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 0.1,
+			"invocation_logs": false,
+			"persist": true
+		},
+		"traces": {
+			"enabled": false,
+			"head_sampling_rate": 1,
+			"persist": true
+		}
+	},
+	// ============================================================
+	// VARIABEL LINGKUNGAN NON-SENSITIF
+	// Variabel yang aman diletakkan di sini (tidak mengandung secret).
+	// ============================================================
+	"vars": {
+		"NODE_ENV": "production",
+		"STORAGE_DRIVER": "r2",
+		"R2_REGION": "auto"
+	}
+	// ============================================================
+	// PERINTAH UNTUK MENDAFTARKAN SECRETS:
+	// Secrets TIDAK boleh ada di file ini.
+	// Gunakan skrip otomatis: 'npm run secrets:setup' atau daftarkan via CLI:
+	//
+	//   npx wrangler secret put TURSO_DATABASE_URL
+	//   npx wrangler secret put TURSO_AUTH_TOKEN
+	//   npx wrangler secret put R2_ENDPOINT
+	//   npx wrangler secret put R2_BUCKET
+	//   npx wrangler secret put R2_ACCESS_KEY_ID
+	//   npx wrangler secret put R2_SECRET_ACCESS_KEY
+	//   npx wrangler secret put R2_PUBLIC_URL
+	//   npx wrangler secret put AUTH_SECRET
+	//   npx wrangler secret put NEXT_PUBLIC_APP_URL
+	//   npx wrangler secret put NEXT_PUBLIC_TURNSTILE_SITE_KEY
+	//   npx wrangler secret put CLOUDFLARE_TURNSTILE_SECRET_KEY
+	//   npx wrangler secret put CLOUDFLARE_ZONE_ID
+	//   npx wrangler secret put CLOUDFLARE_API_TOKEN
+	//
+	// Verifikasi secrets yang terdaftar:
+	//   npx wrangler secret list
+	// ============================================================
 }

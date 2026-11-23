@@ -104,20 +104,22 @@ export const getPublishedPosts = cache(async function getPublishedPosts({
         },
       }),
       prisma.tBerita.count({ where }),
-      prisma.tBerita.findMany({
+      prisma.tBerita.groupBy({
+        by: ["kategori"],
         where: {
           status: "published",
           tanggalPublish: { lte: now },
         },
-        select: { kategori: true },
+        _count: { _all: true },
       }),
     ]);
 
     // Hitung jumlah tiap kategori
-    const categoryCounts: Record<string, number> = { Semua: allCategories.length };
+    const categoryCounts: Record<string, number> = { Semua: 0 };
     for (const item of allCategories) {
+      categoryCounts.Semua += item._count._all;
       if (item.kategori) {
-        categoryCounts[item.kategori] = (categoryCounts[item.kategori] || 0) + 1;
+        categoryCounts[item.kategori] = (categoryCounts[item.kategori] || 0) + item._count._all;
       }
     }
 
