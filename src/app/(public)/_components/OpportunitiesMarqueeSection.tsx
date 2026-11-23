@@ -51,6 +51,7 @@ export function OpportunitiesMarqueeSection({
               <div key={`opp-${idx}`} className="shrink-0 pr-4 sm:pr-6 lg:pr-8">
                 <Link
                   href={card.href}
+                  prefetch={false}
                   className="group relative flex w-52 sm:w-64 md:w-72 lg:w-80 aspect-[4/5] flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FFB22C]/40 bg-gradient-to-br from-[#292931] via-[#202026] to-[#161619] p-5 sm:p-6 shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-[#FFB22C] hover:shadow-[0_0_35px_rgba(255,178,44,0.22)]"
                 >
                   {/* Ambient Corner Glow */}

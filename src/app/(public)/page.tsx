@@ -91,17 +91,15 @@ export default async function HomePage() {
     ...postsData.items.map((p) => ({
       href: `/activity/${p.slug}`,
       title: p.title,
-      caption: p.excerpt || (p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Berita Terbaru"),
+      caption: (p.excerpt || (p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Berita Terbaru")).slice(0, 140),
       tag: p.category || "Berita",
       date: p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Terbaru",
     })),
     ...defaultNews,
   ];
 
-  // Replikasi 4x untuk infinite marquee mulus tanpa jeda
+  // Replikasi 2x (cukup untuk animasi translateX 0% -> -50% tanpa membengkakkan HTML/RSC)
   const newsMarqueeItems = [
-    ...newsBaseList,
-    ...newsBaseList,
     ...newsBaseList,
     ...newsBaseList,
   ];
@@ -150,10 +148,10 @@ export default async function HomePage() {
   ];
 
   const opportunityBaseList: OpportunityMarqueeItem[] = [
-    ...opportunitiesData.items.map((op) => ({
+    ...opportunitiesData.items.slice(0, 6).map((op) => ({
       href: `/competition/${op.slug}`,
       title: op.title,
-      caption: op.description?.replace(/<[^>]*>/g, "") || op.organizer || "Kompetisi Mahasiswa",
+      caption: (op.description?.replace(/<[^>]*>/g, "") || op.organizer || "Kompetisi Mahasiswa").slice(0, 140),
       tag: op.category || "LOMBA",
       date: op.deadlineAt ? `Tenggat: ${formatDateIndonesian(op.deadlineAt)}` : "Terbuka",
       organizer: op.organizer || "PERISAI UMI",
@@ -162,8 +160,6 @@ export default async function HomePage() {
   ];
 
   const opportunityMarqueeItems = [
-    ...opportunityBaseList,
-    ...opportunityBaseList,
     ...opportunityBaseList,
     ...opportunityBaseList,
   ];

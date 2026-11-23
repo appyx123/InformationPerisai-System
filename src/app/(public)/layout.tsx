@@ -2,8 +2,9 @@ import React from "react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
-// Edge Caching: 5 menit (300s) + Stale-While-Revalidate untuk melindungi kuota Turso & Cloudflare
-export const revalidate = 300;
+// Halaman ber-database masing-masing mengatur `revalidate` sendiri;
+// layout dibiarkan statis agar halaman statis (/tentang/sejarah, visi-misi, struktur, kontak)
+// tidak terkena ISR STALE revalidation setiap 5 menit.
 
 export default function PublicLayout({
   children,

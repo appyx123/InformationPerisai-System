@@ -76,7 +76,7 @@ export const getPublicOpportunities = cache(async function getPublicOpportunitie
   }
 
   try {
-    const [items, allOpportunities] = await Promise.all([
+    const [items, groupedTypes] = await Promise.all([
       prisma.tKompetisi.findMany({
         where,
         select: {
@@ -96,24 +96,26 @@ export const getPublicOpportunities = cache(async function getPublicOpportunitie
           { deadlinePendaftaran: "asc" },
         ],
       }),
-      prisma.tKompetisi.findMany({
+      prisma.tKompetisi.groupBy({
+        by: ["tipe"],
         where: { status: "published" },
-        select: { tipe: true, kategori: true, deadlinePendaftaran: true },
+        _count: { _all: true },
       }),
     ]);
 
-    // Hitung jumlah tiap jenis tipe
+    // Hitung jumlah tiap jenis tipe via agregasi DB
     const typeCounts: Record<string, number> = {
-      Semua: allOpportunities.length,
+      Semua: 0,
       lomba: 0,
       beasiswa: 0,
       hibah: 0,
       seminar: 0,
     };
 
-    for (const op of allOpportunities) {
-      const t = (op.tipe || "lomba").toLowerCase();
-      typeCounts[t] = (typeCounts[t] || 0) + 1;
+    for (const group of groupedTypes) {
+      typeCounts.Semua += group._count._all;
+      const t = (group.tipe || "lomba").toLowerCase();
+      typeCounts[t] = (typeCounts[t] || 0) + group._count._all;
     }
 
     const result: PublicOpportunityResult = {
@@ -123,6 +125,7 @@ export const getPublicOpportunities = cache(async function getPublicOpportunitie
         const secondsLeft = deadlineSec ? deadlineSec - now : null;
         const daysLeft = secondsLeft !== null ? Math.ceil(secondsLeft / 86400) : null;
         const isUrgent = daysLeft !== null && daysLeft <= 7 && daysLeft >= 0;
+        const plainDesc = (op.deskripsi || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 350);
 
         return {
           id: String(op.idKompetisi),
@@ -131,7 +134,7 @@ export const getPublicOpportunities = cache(async function getPublicOpportunitie
           slug: op.slug,
           category: op.kategori || "KOMPETISI",
           organizer: op.penyelenggara || "PERISAI UMI",
-          description: op.deskripsi || "",
+          description: plainDesc,
           deadlineAt: parseDate(deadlineSec)?.toISOString() || null,
           registrationUrl: op.linkPendaftaran || null,
           coverImageUrl: op.linkPoster || "/og-default.webp",

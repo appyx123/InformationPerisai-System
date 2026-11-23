@@ -7,6 +7,8 @@ import { formatDateIndonesian, formatDateTimeWITA } from "@/lib/dates";
 import { OpportunityCard } from "@/features/opportunities/components/OpportunityCard";
 import type { Metadata } from "next";
 
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

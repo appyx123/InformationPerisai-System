@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -27,6 +28,17 @@ export function AdminSidebar({
   userRole?: string;
 }) {
   const pathname = usePathname();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pendingHref) return;
+    const timer = setTimeout(() => setPendingHref(null), 6000);
+    return () => clearTimeout(timer);
+  }, [pendingHref]);
 
   const navSections: NavSection[] = [
     {
@@ -240,10 +252,12 @@ export function AdminSidebar({
                 </p>
                 <nav className="space-y-1">
                   {visibleItems.map((item) => {
+                    const activeTarget = pendingHref || pathname;
                     const isActive =
                       item.href === "/admin"
-                        ? pathname === "/admin"
-                        : pathname.startsWith(item.href);
+                        ? activeTarget === "/admin"
+                        : activeTarget.startsWith(item.href);
+                    const isLoadingThis = pendingHref === item.href && pathname !== item.href;
 
                     const Icon = item.icon;
 
@@ -251,6 +265,10 @@ export function AdminSidebar({
                       <Link
                         key={item.href}
                         href={item.href}
+                        prefetch={false}
+                        onClick={() => {
+                          if (pathname !== item.href) setPendingHref(item.href);
+                        }}
                         className={cn(
                           "flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-200",
                           isActive
@@ -264,7 +282,10 @@ export function AdminSidebar({
                             isActive ? "text-[#1b1b1f]" : "text-[#FFB22C]"
                           )}
                         />
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate flex-1">{item.label}</span>
+                        {isLoadingThis && (
+                          <span className="h-3 w-3 shrink-0 rounded-full border-2 border-[#1b1b1f]/30 border-t-[#1b1b1f] animate-spin" />
+                        )}
                       </Link>
                     );
                   })}

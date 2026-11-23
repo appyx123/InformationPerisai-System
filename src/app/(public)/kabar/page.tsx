@@ -10,19 +10,10 @@ export const metadata: Metadata = {
     "Dokumentasi riset saintifik, liputan kegiatan pengabdian masyarakat, workshop karya tulis ilmiah, dan aktivitas fungsionaris UKM PERISAI UMI.",
 };
 
-export default async function KabarPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; kategori?: string; cari?: string }>;
-}) {
-  const { page: pageStr, kategori, cari } = await searchParams;
-  const page = parseInt(pageStr || "1", 10);
-
+export default async function KabarPage() {
   const postsData = await getPublishedPosts({
-    page,
-    pageSize: 60, // Muat konten untuk interaksi filtering & client pagination cepat
-    category: kategori,
-    search: cari,
+    page: 1,
+    pageSize: 60, // Muat konten untuk interaksi filtering & client pagination cepat (ISR-cached)
   });
 
 

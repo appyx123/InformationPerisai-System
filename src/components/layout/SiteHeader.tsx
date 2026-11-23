@@ -17,8 +17,22 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleNavClick = (href: string) => {
+    setIsAboutOpen(false);
+    setIsMobileMenuOpen(false);
+    const normalizedPath = pathname;
+    const isSame =
+      href === normalizedPath ||
+      (href === "/activity" && normalizedPath === "/kabar") ||
+      (href === "/competition" && normalizedPath === "/peluang");
+    if (!isSame) {
+      setPendingHref(href);
+    }
+  };
 
   const handleOpenDropdown = () => {
     if (timeoutRef.current) {
@@ -57,23 +71,41 @@ export function SiteHeader() {
     };
   }, []);
 
-  // Close menus on route change
+  // Close menus & clear pending indicator on route change
   useEffect(() => {
     setIsAboutOpen(false);
     setIsMobileMenuOpen(false);
+    setPendingHref(null);
   }, [pathname]);
 
-  const isHomeActive = pathname === "/";
-  const isAboutActive = pathname.startsWith("/tentang") || pathname.startsWith("/about");
-  const isActivityActive = pathname.startsWith("/activity") || pathname.startsWith("/kabar");
-  const isCompetitionActive = pathname.startsWith("/competition") || pathname.startsWith("/peluang");
-  const isContactActive = pathname.startsWith("/kontak");
+  // Safety timeout agar indikator navigasi tidak pernah tersangkut
+  useEffect(() => {
+    if (!pendingHref) return;
+    const timer = setTimeout(() => setPendingHref(null), 6000);
+    return () => clearTimeout(timer);
+  }, [pendingHref]);
+
+  const activePath = pendingHref || pathname;
+  const isHomeActive = activePath === "/";
+  const isAboutActive = activePath.startsWith("/tentang") || activePath.startsWith("/about");
+  const isActivityActive = activePath.startsWith("/activity") || activePath.startsWith("/kabar");
+  const isCompetitionActive = activePath.startsWith("/competition") || activePath.startsWith("/peluang");
+  const isContactActive = activePath.startsWith("/kontak");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#FFB22C]/20 bg-[#1b1b1f]/90 backdrop-blur-xl text-[#ECECEC] transition-all">
+      {/* Slim top loading bar saat perpindahan menu sedang berlangsung */}
+      {pendingHref && (
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-[2px] overflow-hidden bg-[#FFB22C]/20"
+        >
+          <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-[#FFB22C] to-transparent animate-pulse" />
+        </div>
+      )}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0">
+        <Link href="/" onClick={() => handleNavClick("/")} className="flex items-center gap-3 shrink-0">
           <Image
             src="/logoperisaidengantulisan.webp"
             alt="Logo UKM PERISAI UMI"
@@ -89,6 +121,7 @@ export function SiteHeader() {
           {/* Beranda */}
           <Link
             href="/"
+            onClick={() => handleNavClick("/")}
             className={cn(
               "text-xs sm:text-sm font-bold transition-all px-4 py-1.5 rounded-full",
               isHomeActive
@@ -148,6 +181,7 @@ export function SiteHeader() {
                         <Link
                           key={item.href}
                           href={item.href}
+                          onClick={() => handleNavClick(item.href)}
                           className={cn(
                             "w-full rounded-xl px-4 py-2.5 text-center text-xs font-bold transition-all shadow-xs",
                             isActive
@@ -168,6 +202,7 @@ export function SiteHeader() {
           {/* Activity */}
           <Link
             href="/activity"
+            onClick={() => handleNavClick("/activity")}
             className={cn(
               "text-xs sm:text-sm font-bold transition-all px-4 py-1.5 rounded-full",
               isActivityActive
@@ -181,6 +216,7 @@ export function SiteHeader() {
           {/* Competition */}
           <Link
             href="/competition"
+            onClick={() => handleNavClick("/competition")}
             className={cn(
               "text-xs sm:text-sm font-bold transition-all px-4 py-1.5 rounded-full",
               isCompetitionActive
@@ -194,6 +230,7 @@ export function SiteHeader() {
           {/* Kontak */}
           <Link
             href="/kontak"
+            onClick={() => handleNavClick("/kontak")}
             className={cn(
               "text-xs sm:text-sm font-bold transition-all px-4 py-1.5 rounded-full",
               isContactActive
@@ -209,6 +246,8 @@ export function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/login"
+            prefetch={false}
+            onClick={() => handleNavClick("/admin/login")}
             className="hidden sm:inline-flex items-center justify-center rounded-full border border-[#FFB22C] bg-[#FFB22C]/10 px-4 py-1.5 text-xs font-bold text-[#FFB22C] transition-all duration-300 hover:bg-[#FFB22C] hover:text-[#1b1b1f] hover:shadow-[0_0_20px_rgba(255,178,44,0.35)]"
           >
             Portal Pengurus
@@ -236,6 +275,7 @@ export function SiteHeader() {
           <div className="flex flex-col gap-2">
             <Link
               href="/"
+              onClick={() => handleNavClick("/")}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-semibold transition",
                 isHomeActive ? "bg-[#FFB22C] text-[#1b1b1f] font-bold" : "text-zinc-200 hover:bg-white/5 hover:text-[#FFB22C]"
@@ -259,6 +299,7 @@ export function SiteHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => handleNavClick(item.href)}
                     className="rounded-lg bg-white/5 px-3 py-2 text-xs font-bold text-center text-zinc-200 hover:bg-[#FFB22C] hover:text-[#1b1b1f] transition"
                   >
                     {item.label}
@@ -269,6 +310,7 @@ export function SiteHeader() {
 
             <Link
               href="/activity"
+              onClick={() => handleNavClick("/activity")}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-semibold transition",
                 isActivityActive ? "bg-[#FFB22C] text-[#1b1b1f] font-bold" : "text-zinc-200 hover:bg-white/5 hover:text-[#FFB22C]"
@@ -279,6 +321,7 @@ export function SiteHeader() {
 
             <Link
               href="/competition"
+              onClick={() => handleNavClick("/competition")}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-semibold transition",
                 isCompetitionActive ? "bg-[#FFB22C] text-[#1b1b1f] font-bold" : "text-zinc-200 hover:bg-white/5 hover:text-[#FFB22C]"
@@ -289,6 +332,7 @@ export function SiteHeader() {
 
             <Link
               href="/kontak"
+              onClick={() => handleNavClick("/kontak")}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-semibold transition",
                 isContactActive ? "bg-[#FFB22C] text-[#1b1b1f] font-bold" : "text-zinc-200 hover:bg-white/5 hover:text-[#FFB22C]"
@@ -300,6 +344,8 @@ export function SiteHeader() {
             <div className="pt-2 border-t border-white/10 mt-2">
               <Link
                 href="/admin/login"
+                prefetch={false}
+                onClick={() => handleNavClick("/admin/login")}
                 className="flex w-full items-center justify-center rounded-full bg-[#FFB22C] py-2.5 text-xs font-bold text-[#1b1b1f] shadow-lg hover:brightness-110 transition"
               >
                 Portal Pengurus

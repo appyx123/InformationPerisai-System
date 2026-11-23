@@ -14,10 +14,7 @@ export default function AdminError({
   const [isRetrying, setIsRetrying] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showStack, setShowStack] = useState(false);
-
-  useEffect(() => {
-    console.error("Admin Panel Error caught by ErrorBoundary:", error);
-  }, [error]);
+  const [isAutoReloading, setIsAutoReloading] = useState(false);
 
   const isNetworkOrDb =
     error.message?.includes("connect") ||
@@ -27,8 +24,33 @@ export default function AdminError({
 
   const isRscStreamAbort =
     error.message?.includes("412") ||
+    error.message?.includes("Connection closed") ||
     error.message?.includes("stream") ||
     error.message?.includes("503");
+
+  useEffect(() => {
+    console.error("Admin Panel Error caught by ErrorBoundary:", error);
+    if (typeof window !== "undefined" && isRscStreamAbort) {
+      const reloadKey = `perisai_admin_reload:${window.location.pathname}`;
+      const lastReload = Number(sessionStorage.getItem(reloadKey) || "0");
+      if (Date.now() - lastReload > 15_000) {
+        sessionStorage.setItem(reloadKey, String(Date.now()));
+        setIsAutoReloading(true);
+        window.location.reload();
+      }
+    }
+  }, [error, isRscStreamAbort]);
+
+  if (isAutoReloading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center">
+        <div className="h-9 w-9 rounded-full border-2 border-[#FFB22C]/30 border-t-[#FFB22C] animate-spin" />
+        <p className="text-xs font-semibold text-zinc-400">
+          Menyambungkan ulang modul admin...
+        </p>
+      </div>
+    );
+  }
 
   const handleRetry = () => {
     setIsRetrying(true);

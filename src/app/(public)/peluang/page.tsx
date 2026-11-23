@@ -10,18 +10,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 300;
 
-export default async function PeluangPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tipe?: string; kategori?: string; cari?: string }>;
-}) {
-  const { tipe, kategori, cari } = await searchParams;
-
-  const oppsData = await getPublicOpportunities({
-    type: tipe,
-    category: kategori,
-    search: cari,
-  });
+export default async function PeluangPage() {
+  const oppsData = await getPublicOpportunities();
 
   return (
     <div className="relative min-h-screen bg-[#1b1b1f] text-white selection:bg-[#FFB22C] selection:text-[#1b1b1f]">

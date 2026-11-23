@@ -7,6 +7,8 @@ import { formatDateIndonesian } from "@/lib/dates";
 import { PostCard } from "@/features/posts/components/PostCard";
 import type { Metadata } from "next";
 
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

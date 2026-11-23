@@ -13,30 +13,52 @@ export default function GlobalError({
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isAutoReloading, setIsAutoReloading] = useState(false);
+
+  const isChunkError =
+    error.name === "ChunkLoadError" ||
+    Boolean(error.message?.includes("Loading chunk"));
+
+  const isRscStreamAbort =
+    Boolean(error.message?.includes("412")) ||
+    Boolean(error.message?.includes("Connection closed")) ||
+    Boolean(error.message?.includes("stream"));
 
   useEffect(() => {
     console.error("Global Error Boundary caught:", error);
-    // Auto-reload jika terjadi ChunkLoadError akibat deployment rilis baru
-    if (
-      typeof window !== "undefined" &&
-      (error.name === "ChunkLoadError" || error.message?.includes("Loading chunk"))
-    ) {
-      const reloadKey = "chunk_failed_reload";
-      const hasReloaded = sessionStorage.getItem(reloadKey);
-      if (!hasReloaded) {
-        sessionStorage.setItem(reloadKey, "true");
+    // Auto-reload 1x per halaman (jendela 15 detik) jika RSC stream terputus (#412)
+    // atau ChunkLoadError akibat deployment rilis baru.
+    if (typeof window !== "undefined" && (isChunkError || isRscStreamAbort)) {
+      const reloadKey = `perisai_auto_reload:${window.location.pathname}`;
+      const lastReload = Number(sessionStorage.getItem(reloadKey) || "0");
+      if (Date.now() - lastReload > 15_000) {
+        sessionStorage.setItem(reloadKey, String(Date.now()));
+        setIsAutoReloading(true);
         window.location.reload();
       }
     }
-  }, [error]);
+  }, [error, isChunkError, isRscStreamAbort]);
 
   const handleReset = () => {
-    if (error.name === "ChunkLoadError" || error.message?.includes("Loading chunk")) {
+    if (isChunkError || isRscStreamAbort) {
       window.location.reload();
     } else {
       reset();
     }
   };
+
+  if (isAutoReloading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#16161a] text-white px-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="h-10 w-10 rounded-full border-2 border-[#FFB22C]/30 border-t-[#FFB22C] animate-spin" />
+          <p className="text-sm font-semibold text-zinc-300">
+            Menyambungkan ulang halaman...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopy = () => {
     const errorText = `PERISAI UMI Error Log:\nMessage: ${error.message}\nDigest: ${error.digest || "-"}\nStack: ${error.stack || "-"}`;
@@ -92,13 +114,21 @@ export default function GlobalError({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-bold text-rose-300">
               <span className="h-2 w-2 rounded-full bg-rose-400 animate-ping" />
-              <span>GALAT SISTEM TERDETEKSI</span>
+              <span>
+                {isRscStreamAbort
+                  ? "KONEKSI DATA TERPUTUS"
+                  : "GALAT SISTEM TERDETEKSI"}
+              </span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-              Sistem Mengalami Kendala
+              {isRscStreamAbort
+                ? "Koneksi Terputus Saat Memuat"
+                : "Sistem Mengalami Kendala"}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-              Terjadi galat tak terduga saat memproses halaman ini. Data Anda aman dan sistem telah mencatat laporan kejadian ini.
+              {isRscStreamAbort
+                ? "Aliran data halaman terputus sebelum selesai diterima browser. Silakan muat ulang halaman untuk mencoba kembali."
+                : "Terjadi galat tak terduga saat memproses halaman ini. Data Anda aman dan sistem telah mencatat laporan kejadian ini."}
             </p>
           </div>
 
