@@ -4,19 +4,18 @@ export async function getDashboardOverview() {
   const now = Math.floor(Date.now() / 1000);
   try {
     const [
-      totalPosts,
-      totalWorkPrograms,
-      totalOpportunities,
-      totalMembers,
-      unreadMessages,
+      countRows,
       closingSoonOpportunitiesRaw,
       recentPostsRaw,
     ] = await Promise.all([
-      prisma.tBerita.count(),
-      prisma.tProker.count(),
-      prisma.tKompetisi.count(),
-      prisma.mAnggota.count(),
-      prisma.tPesanMasuk.count({ where: { isRead: 0 } }),
+      // Satu round-trip ke Turso untuk kelima counter (sebelumnya 5 query terpisah)
+      prisma.$queryRaw<Array<Record<string, number | bigint>>>`
+        SELECT
+          (SELECT COUNT(*) FROM T_Berita) AS totalPosts,
+          (SELECT COUNT(*) FROM T_Proker) AS totalWorkPrograms,
+          (SELECT COUNT(*) FROM T_Kompetisi) AS totalOpportunities,
+          (SELECT COUNT(*) FROM M_Anggota) AS totalMembers,
+          (SELECT COUNT(*) FROM T_Pesan_Masuk WHERE is_read = 0) AS unreadMessages`,
       prisma.tKompetisi.findMany({
         where: { deadlinePendaftaran: { gte: now } },
         orderBy: { deadlinePendaftaran: "asc" },
@@ -28,6 +27,13 @@ export async function getDashboardOverview() {
         include: { departemen: { select: { namaDepartemen: true } } },
       }),
     ]);
+
+    const c = countRows[0] ?? {};
+    const totalPosts = Number(c.totalPosts ?? 0);
+    const totalWorkPrograms = Number(c.totalWorkPrograms ?? 0);
+    const totalOpportunities = Number(c.totalOpportunities ?? 0);
+    const totalMembers = Number(c.totalMembers ?? 0);
+    const unreadMessages = Number(c.unreadMessages ?? 0);
 
     const closingSoonOpportunities = closingSoonOpportunitiesRaw.map((o) => ({
       id: String(o.idKompetisi),

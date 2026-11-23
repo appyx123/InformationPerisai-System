@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["@prisma/client", ".prisma/client"],
   images: {
+    // Di Cloudflare Workers tiap /_next/image memakai 1 request Worker (kuota gratis 100rb/hari)
+    // dan tidak ada optimizer bawaan. Gambar sudah dikompres saat unggah / berformat webp,
+    // jadi disajikan langsung dari R2 CDN & aset statis.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

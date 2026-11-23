@@ -20,19 +20,20 @@ export const getPublicStatistics = cache(async function getPublicStatistics(): P
   }
 
   try {
-    const [totalPengurus, totalDept, totalPrestasi, totalProker] = await Promise.all([
-      prisma.tKepengurusan.count({
-        where: {
-          periode: { isActive: 1 },
-          status: "aktif",
-        },
-      }),
-      prisma.mDepartemen.count({
-        where: { isActive: 1 },
-      }),
-      prisma.tPrestasi.count(),
-      prisma.tProker.count(),
-    ]);
+    // Satu round-trip ke Turso untuk keempat counter (sebelumnya 4 query terpisah)
+    const rows = await prisma.$queryRaw<Array<Record<string, number | bigint>>>`
+      SELECT
+        (SELECT COUNT(*) FROM T_Kepengurusan k
+           JOIN M_Periode p ON p.id_periode = k.id_periode
+           WHERE p.is_active = 1 AND k.status = 'aktif') AS totalPengurus,
+        (SELECT COUNT(*) FROM M_Departemen WHERE is_active = 1) AS totalDept,
+        (SELECT COUNT(*) FROM T_Prestasi) AS totalPrestasi,
+        (SELECT COUNT(*) FROM T_Proker) AS totalProker`;
+    const r = rows[0] ?? {};
+    const totalPengurus = Number(r.totalPengurus ?? 0);
+    const totalDept = Number(r.totalDept ?? 0);
+    const totalPrestasi = Number(r.totalPrestasi ?? 0);
+    const totalProker = Number(r.totalProker ?? 0);
 
     const result = [
       {
