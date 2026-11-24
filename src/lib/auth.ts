@@ -224,27 +224,55 @@ export function mapRoleToCmsRole(namaRole: string): AuthUser["role"] {
   }
 }
 
-/**
- * Verifikasi password terhadap hash yang tersimpan.
- *
- * Mendukung dua format hash:
- * 1. scrypt — format: "salt:hexKey" (sistem baru, lebih aman)
- * 2. SHA-256 hex — format legacy untuk seed data awal
- *
- * Menggunakan Web Crypto API (globalThis.crypto) yang tersedia di
- * Cloudflare Workers dan Node.js 20+ tanpa perlu import `node:crypto`.
- * Untuk fungsi scryptSync, menggunakan `node:crypto` dengan dynamic import
- * karena Web Crypto API tidak mendukung scrypt natively.
- */
+// Parameter PBKDF2 yang aman untuk batas CPU 10ms Cloudflare Workers Free Tier (~2ms CPU)
+const EDGE_PBKDF2_ITERATIONS = 10_000;
+const EDGE_PBKDF2_HASH = "SHA-256";
+const EDGE_PBKDF2_BITS = 256;
+
+function constantTimeHexEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+async function derivePbkdf2Hex(
+  password: string,
+  saltHex: string,
+  iterations: number,
+  hashAlg: "SHA-256" | "SHA-512",
+  keyLengthBits: number
+): Promise<string | null> {
+  const saltMatch = saltHex.match(/.{1,2}/g);
+  if (!saltMatch) return null;
+  const salt = new Uint8Array(saltMatch.map((b) => parseInt(b, 16)));
+  const enc = new TextEncoder();
+  const keyMaterial = await globalThis.crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+  const derivedBits = await globalThis.crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations, hash: hashAlg },
+    keyMaterial,
+    keyLengthBits
+  );
+  return Array.from(new Uint8Array(derivedBits))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /**
  * Verifikasi password terhadap hash yang tersimpan.
  *
  * Mendukung format:
- * 1. PBKDF2 — format: "salt:hexKey" (standar Web Crypto API, 100% kompatibel Cloudflare Workers & Node.js)
- * 2. Scrypt — fallback kompatibilitas jika hash scrypt dibuat di Node.js
- * 3. SHA-256 hex — format legacy untuk seed data awal
- *
- * Menggunakan Web Crypto API murni (globalThis.crypto.subtle) tanpa dependensi native C++.
+ * 1. Versioned Edge PBKDF2 — "pbkdf2$<iters>$<sha256|sha512>$<saltHex>:<keyHex>" (~2ms CPU, aman di Workers Free)
+ * 2. Legacy PBKDF2 / scrypt — "<saltHex>:<keyHex>" (backward compatibility akun lama)
+ * 3. Legacy SHA-256 hex — 64 karakter hex (seed data awal)
  */
 export async function verifyPassword(
   password: string,
@@ -253,72 +281,78 @@ export async function verifyPassword(
   try {
     if (!storedHash) return false;
 
-    // Format 1: PBKDF2 atau scrypt ("salt:hexKey")
+    // Format 1: Versioned Edge PBKDF2 ("pbkdf2$10000$sha256$saltHex:keyHex")
+    if (storedHash.startsWith("pbkdf2$")) {
+      const segs = storedHash.split("$");
+      if (segs.length !== 4) return false;
+      const iterations = Number(segs[1]);
+      const algRaw = segs[2].toUpperCase();
+      const hashAlg: "SHA-256" | "SHA-512" = algRaw === "SHA512" || algRaw === "SHA-512" ? "SHA-512" : "SHA-256";
+      const [saltHex, expectedKey] = segs[3].split(":");
+      if (!Number.isFinite(iterations) || iterations < 1000 || !saltHex || !expectedKey) {
+        return false;
+      }
+      const computedHex = await derivePbkdf2Hex(
+        password,
+        saltHex,
+        iterations,
+        hashAlg,
+        expectedKey.length * 4
+      );
+      return computedHex !== null && constantTimeHexEqual(computedHex, expectedKey.toLowerCase());
+    }
+
+    // Format 2: Legacy PBKDF2 atau scrypt ("salt:hexKey")
     if (storedHash.includes(":")) {
       const parts = storedHash.split(":");
       if (parts.length !== 2 || !parts[0] || !parts[1]) return false;
 
       const [saltHex, expectedKey] = parts;
 
-      // 1a. Verifikasi dengan Web Crypto PBKDF2 (Edge-native)
+      // 2a. Verifikasi dengan Web Crypto PBKDF2 (100k iterasi format lama)
       try {
-        const enc = new TextEncoder();
-        const saltMatch = saltHex.match(/.{1,2}/g);
-        if (saltMatch) {
-          const salt = new Uint8Array(saltMatch.map((b) => parseInt(b, 16)));
-          const keyMaterial = await globalThis.crypto.subtle.importKey(
-            "raw",
-            enc.encode(password),
-            { name: "PBKDF2" },
-            false,
-            ["deriveBits"]
-          );
-          const expectedKeyLengthBits = expectedKey.length * 4;
-          const hashAlg = expectedKeyLengthBits > 256 ? "SHA-512" : "SHA-256";
-          const derivedBits = await globalThis.crypto.subtle.deriveBits(
-            {
-              name: "PBKDF2",
-              salt,
-              iterations: 100000,
-              hash: hashAlg,
-            },
-            keyMaterial,
-            expectedKeyLengthBits
-          );
-          const computedHexKey = Array.from(new Uint8Array(derivedBits))
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("");
-
-          if (computedHexKey.length === expectedKey.length) {
-            let diff = 0;
-            for (let i = 0; i < computedHexKey.length; i++) {
-              diff |= computedHexKey.charCodeAt(i) ^ expectedKey.charCodeAt(i);
-            }
-            if (diff === 0) return true;
-          }
+        const expectedKeyLengthBits = expectedKey.length * 4;
+        const hashAlg = expectedKeyLengthBits > 256 ? "SHA-512" : "SHA-256";
+        const computedHexKey = await derivePbkdf2Hex(
+          password,
+          saltHex,
+          100000,
+          hashAlg,
+          expectedKeyLengthBits
+        );
+        if (computedHexKey && constantTimeHexEqual(computedHexKey, expectedKey.toLowerCase())) {
+          return true;
         }
       } catch (pbkdf2Err) {
         console.warn("[auth] PBKDF2 verify skipped/failed:", pbkdf2Err);
       }
 
-      // 1b. Fallback untuk legacy scrypt hash jika runtime mendukung
-      try {
-        const cryptoMod = await import("node:crypto");
-        if (typeof cryptoMod.scryptSync === "function") {
-          const keyBuffer = Buffer.from(expectedKey, "hex");
-          const derivedKey = cryptoMod.scryptSync(password, saltHex, keyBuffer.length);
-          if (cryptoMod.timingSafeEqual(keyBuffer, derivedKey)) {
-            return true;
+      // 2b. Fallback legacy scrypt HANYA di Node.js (di Cloudflare Workers scryptSync
+      // mengonsumsi >35ms CPU & 16MB RAM sehingga melampaui batas Free Tier 10ms -> 500)
+      const isWorkers =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        typeof (globalThis as any).WebSocketPair !== "undefined" ||
+        process.env.NEXT_RUNTIME === "edge";
+
+      if (!isWorkers) {
+        try {
+          const cryptoMod = await import("node:crypto");
+          if (typeof cryptoMod.scryptSync === "function") {
+            const keyBuffer = Buffer.from(expectedKey, "hex");
+            const derivedKey = cryptoMod.scryptSync(password, saltHex, keyBuffer.length);
+            if (cryptoMod.timingSafeEqual(keyBuffer, derivedKey)) {
+              return true;
+            }
           }
+        } catch {
+          // Abaikan jika scryptSync tidak tersedia
         }
-      } catch {
-        // Abaikan jika scryptSync tidak diimplementasikan (mis. di Cloudflare Workers unenv)
       }
 
       return false;
     }
 
-    // Format 2: SHA-256 hex (legacy seed data)
+    // Format 3: SHA-256 hex (legacy seed data)
     if (storedHash.length === 64) {
       const encoder = new TextEncoder();
       const data = encoder.encode(password);
@@ -331,14 +365,7 @@ export async function verifyPassword(
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      const normalizedStored = storedHash.toLowerCase();
-      if (sha256Hex.length !== normalizedStored.length) return false;
-
-      let diff = 0;
-      for (let i = 0; i < sha256Hex.length; i++) {
-        diff |= sha256Hex.charCodeAt(i) ^ normalizedStored.charCodeAt(i);
-      }
-      return diff === 0;
+      return constantTimeHexEqual(sha256Hex, storedHash.toLowerCase());
     }
 
     return false;
@@ -349,36 +376,25 @@ export async function verifyPassword(
 }
 
 /**
- * Buat hash password aman dalam format "salt:hexKey" menggunakan Web Crypto PBKDF2.
- * 100% kompatibel dengan Cloudflare Workers, V8 Isolates, dan Node.js 20+.
+ * Buat hash password aman dalam format versioned Edge PBKDF2 (~2ms CPU).
+ * 100% kompatibel dengan Cloudflare Workers Free Tier (limit CPU 10ms) & Node.js 20+.
  */
 export async function hashPassword(password: string): Promise<string> {
-  const enc = new TextEncoder();
   const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
-  const keyMaterial = await globalThis.crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
-  const derivedBits = await globalThis.crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 100000,
-      hash: "SHA-512",
-    },
-    keyMaterial,
-    512
-  );
-  const hexKey = Array.from(new Uint8Array(derivedBits))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
   const hexSalt = Array.from(salt)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return `${hexSalt}:${hexKey}`;
+  const hexKey = await derivePbkdf2Hex(
+    password,
+    hexSalt,
+    EDGE_PBKDF2_ITERATIONS,
+    EDGE_PBKDF2_HASH,
+    EDGE_PBKDF2_BITS
+  );
+  if (!hexKey) {
+    throw new Error("Gagal menghasilkan hash kata sandi");
+  }
+  return `pbkdf2$${EDGE_PBKDF2_ITERATIONS}$sha256$${hexSalt}:${hexKey}`;
 }
 
 /**

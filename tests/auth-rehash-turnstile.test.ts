@@ -50,26 +50,29 @@ async function main() {
   });
 
 
-  // 3. Uji hashing scrypt baru dan verifikasinya
-  await runTest("hashPassword menghasilkan format scrypt yang valid dan dapat diverifikasi", async () => {
+  // 3. Uji hashing Edge PBKDF2 baru dan verifikasinya
+  await runTest("hashPassword menghasilkan format Edge PBKDF2 yang valid dan dapat diverifikasi", async () => {
     const rawPassword = "rahasiaUKMPerisai2026!";
-    const newScryptHash = await hashPassword(rawPassword);
+    const newHash = await hashPassword(rawPassword);
 
-    assert(typeof newScryptHash === "string", "Hash scrypt harus berupa string");
-    assert(newScryptHash.includes(":"), "Hash scrypt harus memiliki pemisah colon (salt:hexKey)");
+    assert(typeof newHash === "string", "Hash harus berupa string");
+    assert(newHash.startsWith("pbkdf2$"), "Hash baru harus memakai format versioned pbkdf2$");
+    assert(newHash.includes(":"), "Hash harus memiliki pemisah colon (salt:hexKey)");
 
-    const parts = newScryptHash.split(":");
-    assert(parts.length === 2, "Hash scrypt harus terdiri dari 2 bagian");
+    const segs = newHash.split("$");
+    assert(segs.length === 4, "Format versioned harus terdiri dari 4 segmen ($)");
+    const parts = segs[3].split(":");
+    assert(parts.length === 2, "Bagian salt:key harus terdiri dari 2 bagian");
     assert(parts[0].length === 32, "Salt harus 16 bytes (32 hex characters)");
-    assert(parts[1].length === 128, "Derived key harus 64 bytes (128 hex characters)");
+    assert(parts[1].length === 64, "Derived key SHA-256 harus 32 bytes (64 hex characters)");
 
-    assert(isLegacyPasswordHash(newScryptHash) === false, "Hash baru tidak boleh terdeteksi sebagai legacy hash");
+    assert(isLegacyPasswordHash(newHash) === false, "Hash baru tidak boleh terdeteksi sebagai legacy hash");
 
-    const isMatch = await verifyPassword(rawPassword, newScryptHash);
-    assert(isMatch === true, "verifyPassword harus memvalidasi kata sandi terhadap hash scrypt baru");
+    const isMatch = await verifyPassword(rawPassword, newHash);
+    assert(isMatch === true, "verifyPassword harus memvalidasi kata sandi terhadap hash baru");
 
-    const isWrong = await verifyPassword("salahKataSandi", newScryptHash);
-    assert(isWrong === false, "verifyPassword harus menolak kata sandi yang salah terhadap hash scrypt");
+    const isWrong = await verifyPassword("salahKataSandi", newHash);
+    assert(isWrong === false, "verifyPassword harus menolak kata sandi yang salah terhadap hash baru");
   });
 
   // 4. Uji Turnstile tanpa secret key (graceful bypass agar admin tidak terkunci jika belum diset)

@@ -147,34 +147,30 @@ export async function POST(request: Request) {
         );
       }
 
-      // 4. Migrasi Transparan Hash Kata Sandi (SHA-256 legacy ke Edge-native PBKDF2)
+      // 4 & 5. Gabungkan migrasi hash SHA-256 (jika legacy) + pembaruan lastLogin dalam 1 query update
+      const now = Math.floor(Date.now() / 1000);
+      const akunUpdateData: { lastLogin: number; passwordHash?: string } = {
+        lastLogin: now,
+      };
+
       if (isLegacyPasswordHash(anggota.akun.passwordHash)) {
         try {
-          const newHash = await hashPassword(password);
-          await prisma.mAkun.update({
-            where: { idAkun: anggota.akun.idAkun },
-            data: { passwordHash: newHash },
-          });
-          console.info(
-            `[auth] Berhasil memigrasikan hash kata sandi akun ID ${anggota.akun.idAkun} (${anggota.idPerisai}) ke Edge PBKDF2.`
-          );
+          akunUpdateData.passwordHash = await hashPassword(password);
         } catch (migrationErr) {
           console.error(
-            `[auth] Gagal memperbarui hash kata sandi akun ID ${anggota.akun.idAkun}:`,
+            `[auth] Gagal membuat hash kata sandi baru untuk akun ID ${anggota.akun.idAkun}:`,
             migrationErr
           );
         }
       }
 
-      // 5. Catat waktu login terakhir (last_login) - wajib di-await agar tidak meninggalkan orphaned I/O di Workers
-      const now = Math.floor(Date.now() / 1000);
       try {
         await prisma.mAkun.update({
           where: { idAkun: anggota.akun.idAkun },
-          data: { lastLogin: now },
+          data: akunUpdateData,
         });
-      } catch (lastLoginErr) {
-        console.warn("[auth] Gagal memperbarui lastLogin:", lastLoginErr);
+      } catch (updateErr) {
+        console.warn("[auth] Gagal memperbarui metadata akun saat login:", updateErr);
       }
 
       // 6. Generate token ber-entropi tinggi dan simpan sesi ke T_Sesi
@@ -191,7 +187,7 @@ export async function POST(request: Request) {
           id: anggota.idPerisai,
           name: anggota.namaLengkap,
           email: anggota.email,
-          role: anggota.akun.role.namaRole,
+          role: anggota.akun.role?.namaRole || "EDITOR",
         },
       });
 

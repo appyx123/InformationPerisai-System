@@ -37,7 +37,18 @@ export default function AdminLoginPage() {
         }),
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: { success?: boolean; error?: string } = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = {
+          error:
+            res.status >= 500
+              ? `Server sedang sibuk (${res.status}). Silakan coba login kembali beberapa saat lagi.`
+              : "Respons server tidak valid.",
+        };
+      }
 
       if (res.ok && data.success) {
         toast.success("Login berhasil! Mengalihkan ke panel...", { duration: 2000 });
