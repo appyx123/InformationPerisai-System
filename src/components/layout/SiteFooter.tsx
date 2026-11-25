@@ -1,8 +1,23 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getPublicSettings } from "@/features/settings/queries.public";
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const currentYear = new Date().getFullYear();
+  const settings = await getPublicSettings();
+
+  const siteTagline =
+    settings.site_tagline ||
+    "Pusat Pengembangan Riset Mahasiswa Universitas Muslim Indonesia";
+  const address =
+    settings.address ||
+    "GOR UMI Ruangan No. 10 / Kampus II UMI, Jl. Urip Sumoharjo KM 5, Panaikang, Panakkukang, Makassar, Sulawesi Selatan 90231";
+  const contactEmail = settings.contact_email || "ukmperisai@umi.ac.id";
+  const contactPhone = settings.contact_phone || "+62 812-4489-9985";
+  const instagramUrl = settings.instagram_url || "https://instagram.com/ukmperisai_umi";
+  const youtubeUrl = settings.youtube_url || "https://youtube.com/@perisaiumi";
+  const tiktokUrl = settings.tiktok_url || "https://tiktok.com/@ukmperisaiumi";
+  const facebookUrl = settings.facebook_url || "https://facebook.com/perisaiumi";
 
   return (
     <footer className="relative overflow-hidden border-t border-[#FFB22C]/20 bg-[#141417] text-[#ECECEC]">
@@ -31,7 +46,7 @@ export function SiteFooter() {
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Instagram */}
             <a
-              href="https://instagram.com/perisaiumi"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2b2b31] border border-white/10 text-zinc-300 hover:border-[#FFB22C] hover:bg-[#FFB22C] hover:text-[#1b1b1f] hover:scale-110 hover:shadow-[0_0_15px_rgba(255,178,44,0.35)] transition-all duration-300"
@@ -44,7 +59,7 @@ export function SiteFooter() {
 
             {/* YouTube */}
             <a
-              href="https://youtube.com/@perisaiumi"
+              href={youtubeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2b2b31] border border-white/10 text-zinc-300 hover:border-[#FFB22C] hover:bg-[#FFB22C] hover:text-[#1b1b1f] hover:scale-110 hover:shadow-[0_0_15px_rgba(255,178,44,0.35)] transition-all duration-300"
@@ -57,7 +72,7 @@ export function SiteFooter() {
 
             {/* TikTok */}
             <a
-              href="https://tiktok.com/@ukmperisaiumi"
+              href={tiktokUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2b2b31] border border-white/10 text-zinc-300 hover:border-[#FFB22C] hover:bg-[#FFB22C] hover:text-[#1b1b1f] hover:scale-110 hover:shadow-[0_0_15px_rgba(255,178,44,0.35)] transition-all duration-300"
@@ -70,7 +85,7 @@ export function SiteFooter() {
 
             {/* Facebook */}
             <a
-              href="https://facebook.com/perisaiumi"
+              href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2b2b31] border border-white/10 text-zinc-300 hover:border-[#FFB22C] hover:bg-[#FFB22C] hover:text-[#1b1b1f] hover:scale-110 hover:shadow-[0_0_15px_rgba(255,178,44,0.35)] transition-all duration-300"
@@ -92,31 +107,24 @@ export function SiteFooter() {
             </span>
             <div className="text-xs text-zinc-300 space-y-1.5 leading-relaxed">
               <p className="font-bold text-white text-sm">
-                Pusat Pengembangan Riset Mahasiswa Universitas Muslim Indonesia
+                {siteTagline}
               </p>
-              <p>GOR UMI Ruangan No. 10 / Kampus II UMI</p>
-              <p>Jl. Urip Sumoharjo KM 5, Panaikang, Panakkukang, Makassar, Sulawesi Selatan 90231</p>
+              <p>{address}</p>
               <p className="pt-1 font-semibold" style={{ color: "#FFC85A" }}>
-                Email: perisaiumi@umi.ac.id | Narahubung: +62 812-3456-7890
+                Email: {contactEmail} | Narahubung: {contactPhone}
               </p>
             </div>
           </div>
 
-          {/* Right: Input box with Button */}
-          <div className="md:col-span-5">
-            <div className="flex flex-col sm:flex-row items-center gap-2 rounded-2xl border border-white/10 bg-[#2b2b31] p-2 shadow-xl">
-              <input
-                type="email"
-                placeholder="Masukkan email Anda..."
-                className="w-full bg-transparent px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-hidden"
-              />
-              <Link
-                href="/kontak"
-                className="w-full sm:w-auto shrink-0 rounded-xl bg-[#FFB22C] px-5 py-2.5 text-center text-xs font-black text-[#1b1b1f] shadow-md hover:brightness-110 transition-all duration-300"
-              >
-                Tinggalkan Pesan →
-              </Link>
-            </div>
+          {/* Right: Quick Contact CTA */}
+          <div className="md:col-span-5 flex md:justify-end">
+            <Link
+              href="/kontak"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFB22C] px-6 py-3 text-xs font-black text-[#1b1b1f] shadow-lg shadow-[#FFB22C]/20 hover:brightness-110 transition-all duration-300"
+            >
+              <span>Kirim Pesan & Konsultasi</span>
+              <span>→</span>
+            </Link>
           </div>
         </div>
 

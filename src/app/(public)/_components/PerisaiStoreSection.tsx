@@ -1,6 +1,23 @@
 import { GOLD, Sparkle } from "./visuals";
 
-export function PerisaiStoreSection() {
+function toWhatsAppDigits(phone?: string): string {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (!digits) return "6281244899985";
+  if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+  return digits;
+}
+
+interface PerisaiStoreSectionProps {
+  whatsappPhone?: string;
+  storeUrl?: string;
+}
+
+export function PerisaiStoreSection({ whatsappPhone, storeUrl }: PerisaiStoreSectionProps) {
+  const waNumber = toWhatsAppDigits(whatsappPhone);
+  const targetUrl =
+    storeUrl ||
+    `https://wa.me/${waNumber}?text=Halo%20Admin%20PERISAI%20Store,%20saya%20tertarik%20dengan%20katalog%20merchandise%20resmi!`;
+
   return (
     <section className="relative pb-24 pt-4">
       <Sparkle className="left-[5%] top-12 hidden md:block" size={26} delay={0.5} float />
@@ -31,7 +48,7 @@ export function PerisaiStoreSection() {
             {/* Tombol CTA Elegan */}
             <div className="pt-2">
               <a
-                href="https://wa.me/6281234567890?text=Halo%20Admin%20PERISAI%20Store,%20saya%20tertarik%20dengan%20katalog%20merchandise%20resmi!"
+                href={targetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group inline-flex items-center justify-center rounded-full px-8 py-3 text-xs sm:text-sm font-bold text-[#1b1b1f] shadow-lg shadow-[#FFB22C]/25 transition-all duration-300 hover:scale-105 hover:brightness-110 active:scale-95"

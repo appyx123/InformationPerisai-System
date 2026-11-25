@@ -1,5 +1,8 @@
 import { ContactForm } from "@/features/inbox/components/ContactForm";
+import { getPublicSettings } from "@/features/settings/queries.public";
 import type { Metadata } from "next";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Kontak & Layanan Informasi — UKM PERISAI UMI",
@@ -7,7 +10,27 @@ export const metadata: Metadata = {
     "Hubungi pengurus UKM PERISAI UMI untuk konsultasi riset ilmiah, bimbingan proposal PKM Belmawa, kerjasama kemitraan, dan informasi sekretariat.",
 };
 
-export default function KontakPage() {
+function toWhatsAppDigits(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "6281244899985";
+  if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+  return digits;
+}
+
+export default async function KontakPage() {
+  const settings = await getPublicSettings();
+  const contactPhone = settings.contact_phone || "+62 812-4489-9985";
+  const waDigits = toWhatsAppDigits(contactPhone);
+  const contactEmail = settings.contact_email || "ukmperisai@umi.ac.id";
+  const address =
+    settings.address ||
+    "GOR UMI Ruangan No. 10, Kampus II Universitas Muslim Indonesia, Jl. Urip Sumoharjo KM 5, Panaikang, Panakkukang, Makassar, Sulawesi Selatan 90231";
+  const instagramUrl = settings.instagram_url || "https://instagram.com/ukmperisai_umi";
+  const instagramHandle =
+    instagramUrl.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/.*$/, "") ||
+    "ukmperisai_umi";
+  const youtubeUrl = settings.youtube_url || "https://youtube.com/@perisaiumi";
+  const mapsUrl = settings.maps_url || "https://maps.app.goo.gl/5fUW1vEk1MquhL926";
   return (
     <div className="relative min-h-screen bg-[#1b1b1f] text-white selection:bg-[#FFB22C] selection:text-[#1b1b1f]">
       {/* Ambient Radial Top Glow */}
@@ -85,19 +108,17 @@ export default function KontakPage() {
 
                 <div className="space-y-2 text-xs sm:text-sm text-zinc-300 leading-relaxed pl-0.5">
                   <p className="font-semibold text-white">
-                    GOR UMI Ruangan No. 10
+                    {settings.site_name || "UKM PERISAI UMI"}
                   </p>
                   <p className="text-zinc-400">
-                    Kampus II Universitas Muslim Indonesia<br />
-                    Jl. Urip Sumoharjo KM 5, Panaikang, Panakkukang<br />
-                    Makassar, Sulawesi Selatan 90231
+                    {address}
                   </p>
                 </div>
               </div>
 
               <div className="pt-4">
                 <a
-                  href="https://maps.app.goo.gl/5fUW1vEk1MquhL926"
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white hover:border-[#FFB22C] hover:text-[#FFB22C] hover:bg-[#FFB22C]/10 transition"
@@ -129,7 +150,7 @@ export default function KontakPage() {
                 <div className="space-y-2 pt-0.5">
                   {/* WhatsApp */}
                   <a
-                    href="https://wa.me/6281234567890"
+                    href={`https://wa.me/${waDigits}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-white/10 bg-white/5 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/10 transition group"
@@ -144,7 +165,7 @@ export default function KontakPage() {
                         <div className="text-xs font-bold text-white group-hover:text-[#FFB22C] transition">
                           WhatsApp Hotline
                         </div>
-                        <div className="text-[11px] text-zinc-400">+62 812-3456-7890</div>
+                        <div className="text-[11px] text-zinc-400">{contactPhone}</div>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#FFB22C]">Chat →</span>
@@ -152,7 +173,7 @@ export default function KontakPage() {
 
                   {/* Email */}
                   <a
-                    href="mailto:perisaiumi@umi.ac.id"
+                    href={`mailto:${contactEmail}`}
                     className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-white/10 bg-white/5 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/10 transition group"
                   >
                     <div className="flex items-center gap-3">
@@ -165,7 +186,7 @@ export default function KontakPage() {
                         <div className="text-xs font-bold text-white group-hover:text-[#FFB22C] transition">
                           Email Resmi
                         </div>
-                        <div className="text-[11px] text-zinc-400">perisaiumi@umi.ac.id</div>
+                        <div className="text-[11px] text-zinc-400">{contactEmail}</div>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#FFB22C]">Kirim →</span>
@@ -173,7 +194,7 @@ export default function KontakPage() {
 
                   {/* Instagram */}
                   <a
-                    href="https://instagram.com/perisaiumi"
+                    href={instagramUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-white/10 bg-white/5 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/10 transition group"
@@ -190,7 +211,7 @@ export default function KontakPage() {
                         <div className="text-xs font-bold text-white group-hover:text-[#FFB22C] transition">
                           Instagram Resmi
                         </div>
-                        <div className="text-[11px] text-zinc-400">perisaiumi</div>
+                        <div className="text-[11px] text-zinc-400">@{instagramHandle}</div>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#FFB22C]">Buka ↗</span>
@@ -198,7 +219,7 @@ export default function KontakPage() {
 
                   {/* YouTube */}
                   <a
-                    href="https://youtube.com/@perisaiumi"
+                    href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-white/10 bg-white/5 hover:border-[#FFB22C]/40 hover:bg-[#FFB22C]/10 transition group"

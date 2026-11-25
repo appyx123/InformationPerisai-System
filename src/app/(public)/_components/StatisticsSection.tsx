@@ -30,7 +30,7 @@ export function StatisticsSection({ alumniStat, pengurusCount }: StatisticsSecti
           <h2 className="text-3xl font-black uppercase sm:text-5xl lg:text-6xl tracking-tight text-white leading-tight">
             Lebih Dari{" "}
             <span className="bg-gradient-to-r from-[#FFB22C] via-[#FFD700] to-[#FFA000] bg-clip-text text-transparent">
-              300+ Inovator
+              {formattedAlumni} Inovator
             </span>{" "}
             Telah Bergabung
           </h2>

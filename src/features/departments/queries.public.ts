@@ -4,11 +4,14 @@ import prisma from "@/lib/db";
 export interface PublicDepartmentItem {
   id: string;
   name: string;
+  code: string;
   slug: string;
   shortDescription: string;
   description: string;
   vision: string;
   mission: string;
+  groupPhotoUrl: string | null;
+  programNames: string[];
   isActive: boolean;
   orderIndex: number;
   _count: {
@@ -33,16 +36,18 @@ export const getPublicDepartments = cache(async function getPublicDepartments():
       select: {
         idDepartemen: true,
         namaDepartemen: true,
+        singkatan: true,
         slug: true,
         deskripsiSingkat: true,
         tupoksiUtama: true,
         visi: true,
         misi: true,
+        fotoGrup: true,
         isActive: true,
         urutan: true,
         proker: {
           where: { status: "published" },
-          select: { idProker: true },
+          select: { idProker: true, namaProker: true },
         },
         kepengurusan: {
           where: { status: "aktif" },
@@ -54,11 +59,14 @@ export const getPublicDepartments = cache(async function getPublicDepartments():
     const result = depts.map((d) => ({
       id: String(d.idDepartemen),
       name: d.namaDepartemen,
+      code: d.singkatan || d.slug.toUpperCase(),
       slug: d.slug,
       shortDescription: d.deskripsiSingkat || "",
       description: d.tupoksiUtama || "",
       vision: d.visi || "",
       mission: d.misi || "",
+      groupPhotoUrl: d.fotoGrup || null,
+      programNames: d.proker.map((p) => p.namaProker),
       isActive: Boolean(d.isActive),
       orderIndex: d.urutan,
       _count: {

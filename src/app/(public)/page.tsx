@@ -87,16 +87,18 @@ export default async function HomePage() {
     },
   ];
 
-  const newsBaseList: MarqueeItem[] = [
-    ...postsData.items.map((p) => ({
-      href: `/activity/${p.slug}`,
-      title: p.title,
-      caption: (p.excerpt || (p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Berita Terbaru")).slice(0, 140),
-      tag: p.category || "Berita",
-      date: p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Terbaru",
-    })),
-    ...defaultNews,
-  ];
+  const dbNewsItems: MarqueeItem[] = postsData.items.map((p) => ({
+    href: `/activity/${p.slug}`,
+    title: p.title,
+    caption: (p.excerpt || (p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Berita Terbaru")).slice(0, 140),
+    tag: p.category || "Berita",
+    date: p.publishedAt ? formatDateIndonesian(p.publishedAt) : "Terbaru",
+  }));
+
+  // Gunakan data asli dari DB jika tersedia; fallback ke defaultNews hanya jika DB kosong
+  const rawNewsBase = dbNewsItems.length > 0 ? dbNewsItems : defaultNews;
+  const newsBaseList: MarqueeItem[] =
+    rawNewsBase.length < 4 ? [...rawNewsBase, ...rawNewsBase] : rawNewsBase;
 
   // Replikasi 2x (cukup untuk animasi translateX 0% -> -50% tanpa membengkakkan HTML/RSC)
   const newsMarqueeItems = [
@@ -147,17 +149,21 @@ export default async function HomePage() {
     },
   ];
 
-  const opportunityBaseList: OpportunityMarqueeItem[] = [
-    ...opportunitiesData.items.slice(0, 6).map((op) => ({
+  const dbOpportunityItems: OpportunityMarqueeItem[] = opportunitiesData.items
+    .slice(0, 6)
+    .map((op) => ({
       href: `/competition/${op.slug}`,
       title: op.title,
       caption: (op.description?.replace(/<[^>]*>/g, "") || op.organizer || "Kompetisi Mahasiswa").slice(0, 140),
       tag: op.category || "LOMBA",
       date: op.deadlineAt ? `Tenggat: ${formatDateIndonesian(op.deadlineAt)}` : "Terbuka",
       organizer: op.organizer || "PERISAI UMI",
-    })),
-    ...defaultOpportunities,
-  ];
+    }));
+
+  // Gunakan data asli dari DB jika tersedia; fallback ke defaultOpportunities hanya jika DB kosong
+  const rawOppBase = dbOpportunityItems.length > 0 ? dbOpportunityItems : defaultOpportunities;
+  const opportunityBaseList: OpportunityMarqueeItem[] =
+    rawOppBase.length < 4 ? [...rawOppBase, ...rawOppBase] : rawOppBase;
 
   const opportunityMarqueeItems = [
     ...opportunityBaseList,
@@ -316,7 +322,10 @@ export default async function HomePage() {
       </Connector>
 
       {/* 7. PERISAI STORE */}
-      <PerisaiStoreSection />
+      <PerisaiStoreSection
+        whatsappPhone={publicSettings.contact_phone}
+        storeUrl={publicSettings.store_url}
+      />
     </div>
   );
 }

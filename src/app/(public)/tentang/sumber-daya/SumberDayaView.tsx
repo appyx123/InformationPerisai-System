@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
+import type { PublicMemberItem } from "@/features/members/queries.public";
+import type { PublicDepartmentItem } from "@/features/departments/queries.public";
 
 const GOLD = "#FFB22C";
 const BG = "#17171a";
@@ -243,6 +245,7 @@ function TeamGroupPlaceholder() {
 interface PersonCardProps {
   name: string;
   role: string;
+  photoUrl?: string | null;
   socials?: SocialLink[];
   compact?: boolean;
   size?: "standard" | "compact" | "mini";
@@ -251,6 +254,7 @@ interface PersonCardProps {
 function PersonCard({
   name,
   role,
+  photoUrl,
   socials,
   compact = false,
   size = "standard",
@@ -258,11 +262,7 @@ function PersonCard({
   const isMini = size === "mini";
   const isCompact = size === "compact" || compact;
 
-  // Default fallback: 1 icon LinkedIn jika tidak diisi secara custom
-  const activeSocials =
-    socials !== undefined
-      ? socials.slice(0, 5)
-      : ([{ platform: "linkedin", url: "https://www.linkedin.com" }] as SocialLink[]);
+  const activeSocials = socials ? socials.slice(0, 5) : [];
 
   return (
     <div
@@ -306,7 +306,17 @@ function PersonCard({
 
       {/* Area Gambar / Placeholder */}
       <div className="w-full h-full relative">
-        <PersonPlaceholder />
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 150px, 220px"
+            className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <PersonPlaceholder />
+        )}
       </div>
 
       {/* Bottom Nameplate Overlay: Hanya Nama & Jabatan */}
@@ -348,6 +358,14 @@ interface DepartmentInfo {
   desc: string;
   focus: string[];
   programs: string[];
+  groupPhotoUrl?: string | null;
+}
+
+interface PersonEntry {
+  name: string;
+  role: string;
+  photoUrl?: string | null;
+  socials?: SocialLink[];
 }
 
 const DEPARTMENTS_DATA: DepartmentInfo[] = [
@@ -505,7 +523,7 @@ const STAF_AHLI_LIST = [
 function KadepCarouselSection({
   items,
 }: {
-  items: typeof KADEP_LIST;
+  items: PersonEntry[];
 }) {
   const N = items.length;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -667,7 +685,7 @@ function KadepCarouselSection({
                       : "z-10 scale-[0.84] sm:scale-[0.86] opacity-35 sm:opacity-45"
                   } w-[115px] sm:w-[170px] md:w-[205px] lg:w-[225px]`}
                 >
-                  <PersonCard name={item.name} role={item.role} size="standard" />
+                  <PersonCard name={item.name} role={item.role} photoUrl={item.photoUrl} socials={item.socials} size="standard" />
                 </div>
               );
             })}
@@ -713,7 +731,7 @@ function KadepCarouselSection({
 function StafAhliCarouselSection({
   items,
 }: {
-  items: typeof STAF_AHLI_LIST;
+  items: PersonEntry[];
 }) {
   const N = items.length;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -883,7 +901,7 @@ function StafAhliCarouselSection({
                       : "z-0 scale-[0.78] sm:scale-[0.8] opacity-20 sm:opacity-30"
                   } w-[100px] sm:w-[155px] md:w-[185px] lg:w-[205px]`}
                 >
-                  <PersonCard name={item.name} role={item.role} size="standard" />
+                  <PersonCard name={item.name} role={item.role} photoUrl={item.photoUrl} socials={item.socials} size="standard" />
                 </div>
               );
             })}
@@ -1019,8 +1037,87 @@ function DepartmentModal({
 /* ------------------------------------------------------------------ */
 /* Komponen Utama Sumber Daya                                         */
 /* ------------------------------------------------------------------ */
-export function SumberDayaView() {
+function memberToSocials(m: PublicMemberItem): SocialLink[] {
+  const list: SocialLink[] = [];
+  if (m.linkedinUrl) {
+    list.push({ platform: "linkedin", url: m.linkedinUrl });
+  }
+  if (m.instagramUsername) {
+    const clean = m.instagramUsername.replace(/^@/, "").trim();
+    if (clean) {
+      const url = clean.startsWith("http") ? clean : `https://instagram.com/${clean}`;
+      list.push({ platform: "instagram", url });
+    }
+  }
+  return list;
+}
+
+function toPersonEntry(m: PublicMemberItem, fallbackRole?: string): PersonEntry {
+  return {
+    name: m.name,
+    role: (m.position || fallbackRole || "PENGURUS").toUpperCase(),
+    photoUrl: m.photoUrl,
+    socials: memberToSocials(m),
+  };
+}
+
+interface SumberDayaViewProps {
+  members?: PublicMemberItem[];
+  departments?: PublicDepartmentItem[];
+}
+
+export function SumberDayaView({ members = [], departments = [] }: SumberDayaViewProps) {
   const [selectedDept, setSelectedDept] = useState<DepartmentInfo | null>(null);
+
+  const { pembina, ketuaUmum, sekretaris, bendahara, kadepItems, stafItems } = useMemo(() => {
+    const pembinaDb = members.find((m) => m.tier === "pembina");
+    const intiList = members.filter((m) => m.tier === "inti");
+    const ketumDb = intiList.find((m) => /ketua/i.test(m.position)) || intiList[0];
+    const sekumDb = intiList.find((m) => /sekretaris/i.test(m.position));
+    const bendumDb = intiList.find((m) => /bendahara/i.test(m.position));
+    const kadepDb = members.filter((m) => m.tier === "kadep");
+    const stafDb = members.filter((m) => m.tier === "staf");
+
+    return {
+      pembina: pembinaDb ? toPersonEntry(pembinaDb, "PEMBINA") : { name: "Dewan Pembina", role: "PEMBINA" },
+      ketuaUmum: ketumDb ? toPersonEntry(ketumDb, "KETUA UMUM") : { name: "Ketua Umum", role: "KETUA UMUM" },
+      sekretaris: sekumDb ? toPersonEntry(sekumDb, "SEKRETARIS UMUM") : { name: "Sekretaris Umum", role: "SEKRETARIS UMUM" },
+      bendahara: bendumDb ? toPersonEntry(bendumDb, "BENDAHARA UMUM") : { name: "Bendahara Umum", role: "BENDAHARA UMUM" },
+      kadepItems: kadepDb.length > 0 ? kadepDb.map((m) => toPersonEntry(m, "KEPALA DEPARTEMEN")) : KADEP_LIST,
+      stafItems: stafDb.length > 0 ? stafDb.map((m) => toPersonEntry(m, "STAF AHLI")) : STAF_AHLI_LIST,
+    };
+  }, [members]);
+
+  const departmentList: DepartmentInfo[] = useMemo(() => {
+    const operationalDepts = departments.filter(
+      (d) => d.code.toUpperCase() !== "BPH" && d.slug.toLowerCase() !== "bph"
+    );
+    if (operationalDepts.length === 0) return DEPARTMENTS_DATA;
+
+    return operationalDepts.map((d) => {
+      const codeUpper = d.code.toUpperCase();
+      const preset = DEPARTMENTS_DATA.find(
+        (p) =>
+          p.code === codeUpper ||
+          d.name.toUpperCase().includes(p.code) ||
+          d.slug.toUpperCase().includes(p.code)
+      );
+      const missionLines = d.mission
+        ? d.mission.split(/\r?\n|;/).map((s) => s.replace(/^[-•*\d.)\s]+/, "").trim()).filter(Boolean)
+        : [];
+
+      return {
+        code: codeUpper,
+        name: codeUpper,
+        fullName: d.name || preset?.fullName || codeUpper,
+        tagline: d.shortDescription || preset?.tagline || `Departemen ${d.name}`,
+        desc: d.description || d.shortDescription || preset?.desc || "",
+        focus: missionLines.length > 0 ? missionLines : preset?.focus || [],
+        programs: d.programNames.length > 0 ? d.programNames : preset?.programs || [],
+        groupPhotoUrl: d.groupPhotoUrl || null,
+      };
+    });
+  }, [departments]);
 
   return (
     <div
@@ -1148,8 +1245,10 @@ export function SumberDayaView() {
 
           <div className="w-full max-w-[140px] sm:max-w-[190px] md:max-w-[220px] mx-auto">
             <PersonCard
-              name="Nama Pembina"
-              role="PEMBINA"
+              name={pembina.name}
+              role={pembina.role}
+              photoUrl={pembina.photoUrl}
+              socials={pembina.socials}
               size="standard"
             />
           </div>
@@ -1174,8 +1273,10 @@ export function SumberDayaView() {
                 BENDAHARA
               </h3>
               <PersonCard
-                name="Nama Bendahara"
-                role="BENDAHARA"
+                name={bendahara.name}
+                role={bendahara.role}
+                photoUrl={bendahara.photoUrl}
+                socials={bendahara.socials}
                 size="standard"
               />
             </div>
@@ -1189,8 +1290,10 @@ export function SumberDayaView() {
                 KETUA UMUM
               </h3>
               <PersonCard
-                name="Nama Ketua Umum"
-                role="KETUA UMUM"
+                name={ketuaUmum.name}
+                role={ketuaUmum.role}
+                photoUrl={ketuaUmum.photoUrl}
+                socials={ketuaUmum.socials}
                 size="standard"
               />
             </div>
@@ -1204,8 +1307,10 @@ export function SumberDayaView() {
                 SEKRETARIS
               </h3>
               <PersonCard
-                name="Nama Sekretaris"
-                role="SEKRETARIS"
+                name={sekretaris.name}
+                role={sekretaris.role}
+                photoUrl={sekretaris.photoUrl}
+                socials={sekretaris.socials}
                 size="standard"
               />
             </div>
@@ -1270,7 +1375,7 @@ export function SumberDayaView() {
         <div className="relative my-4">
           <Sparkle className="top-4 right-[12%]" size={18} delay={1.5} float />
 
-          <KadepCarouselSection items={KADEP_LIST} />
+          <KadepCarouselSection items={kadepItems} />
 
           {/* Garis Vertikal Turun ke Staf Ahli */}
           <div className="w-0.5 h-8 bg-gradient-to-b from-[#FFB22C] to-[#FFB22C]/80 shadow-[0_0_8px_rgba(255,178,44,0.6)] mx-auto my-2" />
@@ -1280,7 +1385,7 @@ export function SumberDayaView() {
         <div className="relative my-4">
           <Sparkle className="top-4 left-[10%]" size={18} delay={0.9} float />
 
-          <StafAhliCarouselSection items={STAF_AHLI_LIST} />
+          <StafAhliCarouselSection items={stafItems} />
 
           {/* Garis Vertikal Turun ke Section Departemen */}
           <div className="w-0.5 h-10 bg-gradient-to-b from-[#FFB22C] to-[#FFB22C]/80 shadow-[0_0_8px_rgba(255,178,44,0.6)] mx-auto my-3" />
@@ -1303,9 +1408,9 @@ export function SumberDayaView() {
             DEPARTEMEN
           </h2>
 
-          {/* Grid 6 Kartu Departemen (3 Satu Baris di Layar Besar, Ruang Dimaksimalkan) */}
+          {/* Grid Kartu Departemen (3 Satu Baris di Layar Besar, Ruang Dimaksimalkan) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 max-w-[1380px] mx-auto">
-            {DEPARTMENTS_DATA.map((dept) => (
+            {departmentList.map((dept) => (
               <div
                 key={dept.code}
                 className="relative rounded-3xl border border-[#FFB22C]/30 bg-[#202026] overflow-hidden p-6 sm:p-7 flex flex-col justify-between shadow-xl hover:border-[#FFB22C] hover:shadow-[0_0_30px_rgba(255,178,44,0.3)] hover:-translate-y-1.5 transition-all duration-300 group"
@@ -1327,9 +1432,21 @@ export function SumberDayaView() {
                   </p>
                 </div>
 
-                {/* Ilustrasi Placeholder Tim Departemen */}
+                {/* Foto Tim Departemen dari R2/DB atau Placeholder */}
                 <div className="my-5">
-                  <TeamGroupPlaceholder />
+                  {dept.groupPhotoUrl ? (
+                    <div className="relative w-full h-44 sm:h-52 overflow-hidden rounded-2xl border border-[#FFB22C]/25 bg-[#1a1a20]">
+                      <Image
+                        src={dept.groupPhotoUrl}
+                        alt={`Tim ${dept.fullName}`}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  ) : (
+                    <TeamGroupPlaceholder />
+                  )}
                 </div>
 
                 {/* Bagian Bawah Kartu: Subtitle & Tombol Pelajari */}
