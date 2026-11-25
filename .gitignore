@@ -62,3 +62,9 @@ wrangler.toml.bak
 # Graphify analysis artifacts
 graphify-out/
 src/graphify-out/
+
+# Sensitive seed & database reset/migration scripts (local only, never push)
+prisma/seed*.ts
+scripts/*seed*
+scripts/*-turso.mjs
+scripts/reset-and-remigrate-all.mjs
